@@ -1,0 +1,79 @@
+<!doctype html>
+<html lang="th">
+<head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="theme-color" content="#6b4635"><meta name="apple-mobile-web-app-capable" content="yes"><meta name="apple-mobile-web-app-status-bar-style" content="default">
+<link rel="manifest" href="manifest.webmanifest">
+<title>หมีนมสด | POS</title>
+<style>
+:root{--ink:#3e2b22;--brown:#6b4635;--cream:#fff8ed;--paper:#fffdf9;--line:#eadfce;--muted:#88796d;--accent:#d79a62}
+*{box-sizing:border-box}body{margin:0;background:var(--cream);color:var(--ink);font:15px system-ui,-apple-system,"Noto Sans Thai",sans-serif}
+header{background:var(--brown);color:white;padding:16px 16px 12px;position:sticky;top:0;z-index:4}header h1{font-size:20px;margin:0}header small{opacity:.8}
+nav{display:flex;gap:6px;overflow:auto;padding:9px;background:#f4eadb;position:sticky;top:61px;z-index:3}
+nav button{border:0;background:transparent;color:var(--brown);padding:9px 12px;border-radius:20px;white-space:nowrap;font-weight:650}nav button.active{background:var(--brown);color:white}
+main{padding:14px;max-width:1000px;margin:auto}.panel{background:var(--paper);border:1px solid var(--line);border-radius:16px;padding:14px;margin-bottom:13px;box-shadow:0 2px 8px #4b2d1710}
+h2{font-size:18px;margin:0 0 12px}.muted{color:var(--muted);font-size:13px}.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(145px,1fr));gap:10px}
+button,.btn{cursor:pointer;border:0;border-radius:11px;padding:10px 13px;background:var(--brown);color:white;font:inherit;font-weight:650}
+button.secondary{background:#f1e6d8;color:var(--brown)}button.danger{background:#a94438}
+input,select,textarea{width:100%;padding:11px;border:1px solid var(--line);border-radius:10px;background:white;color:var(--ink);font:inherit;margin:4px 0 10px}
+label{font-size:13px;color:var(--muted)}.row{display:flex;gap:8px;align-items:center}.row>*{flex:1}.product{border:1px solid var(--line);border-radius:13px;padding:12px;background:#fff;display:flex;flex-direction:column;gap:6px}.product strong{font-size:15px}.product button{margin-top:auto}.price{color:var(--brown);font-weight:750}
+table{width:100%;border-collapse:collapse;font-size:14px}td,th{text-align:left;padding:9px 5px;border-bottom:1px solid var(--line)}th{color:var(--muted);font-weight:600}
+.hidden{display:none!important}.total{font-size:23px;font-weight:800;color:var(--brown)}.pill{background:#f2e5d5;padding:4px 8px;border-radius:20px;font-size:12px}
+footer{text-align:center;color:var(--muted);font-size:12px;padding:16px}
+@media(min-width:760px){.layout{display:grid;grid-template-columns:1.3fr .9fr;gap:12px}.sticky{position:sticky;top:125px;align-self:start}}
+</style></head>
+<body>
+<header><h1>หมีนมสด</h1><small>ระบบขายหน้าร้าน · รุ่นทดลองฟรี</small></header>
+<nav id="nav">
+<button class="active" data-tab="pos">ขายสินค้า</button><button data-tab="orders">ออเดอร์</button><button data-tab="products">สินค้า</button><button data-tab="stock">สต็อก</button><button data-tab="report">รายงาน</button><button data-tab="backup">สำรองข้อมูล</button>
+</nav>
+<main>
+<section id="pos" class="tab">
+<div class="layout"><div>
+<div class="panel"><h2>รายการสินค้า</h2><input id="search" placeholder="ค้นหาสินค้า..."><div id="productGrid" class="grid"></div></div>
+</div><div class="sticky">
+<div class="panel"><h2>ตะกร้าสินค้า</h2><div id="cart"></div><hr style="border:0;border-top:1px solid var(--line)">
+<div class="row"><div><label>ประเภท</label><select id="service"><option>ทานที่ร้าน</option><option>กลับบ้าน</option><option>เดลิเวอรี</option></select></div><div><label>วิธีชำระ</label><select id="payment"><option>เงินสด</option><option>โอน/QR</option><option>บัตร</option></select></div></div>
+<label>รับเงิน (กรณีเงินสด)</label><input id="received" type="number" min="0" placeholder="จำนวนเงินที่รับ">
+<div class="muted">ยอดรวม</div><div class="total" id="grand">฿0.00</div><div class="muted" id="change">เงินทอน: ฿0.00</div>
+<label>หมายเหตุ</label><input id="note" placeholder="เช่น หวานน้อย / ไม่ใส่น้ำแข็ง">
+<button id="checkout" style="width:100%">ยืนยันการขาย</button><button class="secondary" id="clearCart" style="width:100%;margin-top:7px">ล้างตะกร้า</button>
+</div></div></div>
+</section>
+<section id="orders" class="tab hidden"><div class="panel"><h2>ประวัติออเดอร์</h2><div id="ordersList"></div></div></section>
+<section id="products" class="tab hidden"><div class="panel"><h2>เพิ่ม / แก้ไขสินค้า</h2><input id="pname" placeholder="ชื่อสินค้า"><div class="row"><input id="pprice" type="number" min="0" placeholder="ราคา (บาท)"><input id="psku" placeholder="รหัสสินค้า (ถ้ามี)"></div><button id="saveProduct">บันทึกสินค้า</button><button class="secondary" id="cancelEdit">ยกเลิกแก้ไข</button></div><div class="panel"><h2>สินค้าในร้าน</h2><div id="productList"></div></div></section>
+<section id="stock" class="tab hidden"><div class="panel"><h2>เพิ่ม / ปรับสต็อก</h2><input id="sname" placeholder="ชื่อวัตถุดิบ / สินค้า"><div class="row"><input id="sqty" type="number" placeholder="จำนวนคงเหลือ"><input id="sunit" placeholder="หน่วย เช่น g, ml, ชิ้น"></div><div class="row"><input id="smin" type="number" placeholder="แจ้งเตือนเมื่อเหลือต่ำกว่า"><button id="saveStock">บันทึกสต็อก</button></div></div><div class="panel"><h2>รายการสต็อก</h2><div id="stockList"></div></div></section>
+<section id="report" class="tab hidden"><div class="panel"><h2>สรุปยอดขายวันนี้</h2><div id="summary"></div></div></section>
+<section id="backup" class="tab hidden"><div class="panel"><h2>สำรอง / กู้คืนข้อมูล</h2><p class="muted">ข้อมูลรุ่นทดลองนี้เก็บในเบราว์เซอร์เครื่องนี้ ควรส่งออกสำรองเป็นประจำ</p><button id="export">ส่งออกข้อมูล JSON</button><label style="display:block;margin-top:15px">นำเข้าข้อมูลสำรอง</label><input type="file" id="importFile" accept="application/json"><button class="danger" id="reset">ล้างข้อมูลทั้งหมด</button></div><div class="panel"><h2>ข้อจำกัดรุ่นฟรี</h2><p class="muted">รุ่นนี้ทำงานบนอุปกรณ์เดียวและเก็บข้อมูลในเครื่อง ยังไม่ซิงก์หลายเครื่อง, ไม่มีระบบสมาชิก/PIN, ไม่เชื่อม GrabFood หรือ LINE MAN อัตโนมัติ และยังไม่ตัดวัตถุดิบตามสูตรเครื่องดื่ม</p></div></section>
+</main><footer>BOAT ELECTRIC · หมีนมสด POS · Free prototype</footer>
+<script>
+const KEY='mee-nomsod-pos-v1';
+let db=JSON.parse(localStorage.getItem(KEY)||'{"products":[],"orders":[],"stock":[]}'),cart=[],editing=null;
+const $=id=>document.getElementById(id), money=n=>'฿'+Number(n||0).toLocaleString('th-TH',{minimumFractionDigits:2,maximumFractionDigits:2});
+function save(){localStorage.setItem(KEY,JSON.stringify(db));render()}
+function esc(s){return String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]))}
+document.querySelectorAll('nav button').forEach(b=>b.onclick=()=>{document.querySelectorAll('nav button').forEach(x=>x.classList.toggle('active',x===b));document.querySelectorAll('.tab').forEach(x=>x.classList.toggle('hidden',x.id!==b.dataset.tab));render()});
+function add(id){let p=db.products.find(x=>x.id===id);if(!p)return;let c=cart.find(x=>x.id===id);if(c)c.qty++;else cart.push({...p,qty:1});renderCart()}
+function total(){return cart.reduce((s,x)=>s+x.price*x.qty,0)}
+function renderCart(){$('cart').innerHTML=cart.length?cart.map((x,i)=>`<div class="row" style="margin:8px 0"><div><b>${esc(x.name)}</b><div class="muted">${money(x.price)} × ${x.qty}</div></div><button class="secondary" onclick="qty(${i},-1)">−</button><button class="secondary" onclick="qty(${i},1)">+</button><button class="danger" onclick="removeItem(${i})">×</button></div>`).join(''):'<p class="muted">ยังไม่มีสินค้าในตะกร้า</p>';$('grand').textContent=money(total());let received=+$('received').value||0;$('change').textContent='เงินทอน: '+money(Math.max(0,received-total()))}
+window.qty=(i,n)=>{cart[i].qty+=n;if(cart[i].qty<=0)cart.splice(i,1);renderCart()};window.removeItem=i=>{cart.splice(i,1);renderCart()};
+function render(){let q=($('search')?.value||'').toLowerCase();$('productGrid').innerHTML=db.products.filter(p=>p.name.toLowerCase().includes(q)).map(p=>`<div class="product"><strong>${esc(p.name)}</strong><span class="price">${money(p.price)}</span><button onclick="add('${p.id}')">เพิ่มลงตะกร้า</button></div>`).join('')||'<p class="muted">ยังไม่มีสินค้า เพิ่มสินค้าในเมนูสินค้า</p>';
+$('productList').innerHTML=db.products.map(p=>`<div class="row"><div><b>${esc(p.name)}</b><div class="muted">${esc(p.sku)} · ${money(p.price)}</div></div><button class="secondary" onclick="editProduct('${p.id}')">แก้ไข</button><button class="danger" onclick="delProduct('${p.id}')">ลบ</button></div>`).join('')||'<p class="muted">ยังไม่มีสินค้า</p>';
+$('stockList').innerHTML=db.stock.map(s=>`<div class="row"><div><b>${esc(s.name)}</b><div class="muted">${s.qty} ${esc(s.unit)} · ขั้นต่ำ ${s.min}</div></div><span class="pill">${s.qty<=s.min?'ใกล้หมด':'ปกติ'}</span><button class="secondary" onclick="adjust('${s.id}')">ปรับ</button></div>`).join('')||'<p class="muted">ยังไม่มีรายการสต็อก</p>';
+$('ordersList').innerHTML=db.orders.slice().reverse().map(o=>`<div style="padding:10px 0;border-bottom:1px solid var(--line)"><b>#${o.no} · ${money(o.total)}</b><div class="muted">${new Date(o.time).toLocaleString('th-TH')} · ${esc(o.service)} · ${esc(o.payment)} · ${esc(o.status)}</div><div class="muted">${o.items.map(i=>esc(i.name)+' × '+i.qty).join(', ')}</div></div>`).join('')||'<p class="muted">ยังไม่มีออเดอร์</p>';
+let today=new Date().toDateString(),orders=db.orders.filter(o=>new Date(o.time).toDateString()===today&&o.status==='สำเร็จ'),sum=orders.reduce((a,o)=>a+o.total,0);$('summary').innerHTML=`<div class="grid"><div><div class="muted">ยอดขายวันนี้</div><div class="total">${money(sum)}</div></div><div><div class="muted">จำนวนบิล</div><div class="total">${orders.length}</div></div></div><p class="muted">นับเฉพาะออเดอร์สถานะสำเร็จ</p>`;renderCart()}
+$('search').oninput=render;
+$('received').oninput=renderCart;
+$('checkout').onclick=()=>{if(!cart.length)return alert('กรุณาเลือกสินค้า');let t=total(),pay=$('payment').value,rec=+$('received').value||0;if(pay==='เงินสด'&&rec<t)return alert('จำนวนเงินที่รับไม่พอกับยอดรวม');let order={id:crypto.randomUUID(),no:db.orders.length+1,time:new Date().toISOString(),items:cart.map(x=>({...x})),total:t,service:$('service').value,payment:pay,received:pay==='เงินสด'?rec:t,change:pay==='เงินสด'?rec-t:0,note:$('note').value,status:'สำเร็จ'};db.orders.push(order);cart=[];$('received').value='';$('note').value='';save();alert('บันทึกการขายแล้ว · '+money(t))};
+$('clearCart').onclick=()=>{cart=[];renderCart()};
+$('saveProduct').onclick=()=>{let name=$('pname').value.trim(),price=+$('pprice').value;if(!name||price<0||$('pprice').value==='')return alert('กรอกชื่อและราคาให้ครบ');if(editing){let p=db.products.find(x=>x.id===editing);Object.assign(p,{name,price,sku:$('psku').value})}else db.products.push({id:crypto.randomUUID(),name,price,sku:$('psku').value});editing=null;$('pname').value=$('pprice').value=$('psku').value='';save()};
+window.editProduct=id=>{let p=db.products.find(x=>x.id===id);editing=id;$('pname').value=p.name;$('pprice').value=p.price;$('psku').value=p.sku||'';window.scrollTo(0,0)};
+window.delProduct=id=>{if(confirm('ลบสินค้านี้?')){db.products=db.products.filter(x=>x.id!==id);save()}};
+$('cancelEdit').onclick=()=>{editing=null;$('pname').value=$('pprice').value=$('psku').value=''};
+$('saveStock').onclick=()=>{let name=$('sname').value.trim(),qty=+$('sqty').value,min=+$('smin').value;if(!name||$('sqty').value==='')return alert('กรอกชื่อและจำนวน');let old=db.stock.find(x=>x.name.toLowerCase()===name.toLowerCase());if(old)Object.assign(old,{qty,unit:$('sunit').value,min});else db.stock.push({id:crypto.randomUUID(),name,qty,unit:$('sunit').value,min});$('sname').value=$('sqty').value=$('sunit').value=$('smin').value='';save()};
+window.adjust=id=>{let s=db.stock.find(x=>x.id===id),v=prompt('ระบุจำนวนคงเหลือใหม่',s.qty);if(v!==null&&!isNaN(+v)){s.qty=+v;save()}};
+$('export').onclick=()=>{let a=document.createElement('a'),url=URL.createObjectURL(new Blob([JSON.stringify(db,null,2)],{type:'application/json'}));a.href=url;a.download='mee-nomsod-backup.json';a.click();URL.revokeObjectURL(url)};
+$('importFile').onchange=async e=>{try{let d=JSON.parse(await e.target.files[0].text());if(!Array.isArray(d.products)||!Array.isArray(d.orders)||!Array.isArray(d.stock))throw 0;if(confirm('นำเข้าข้อมูลและแทนที่ข้อมูลปัจจุบัน?')){db=d;save()}}catch{alert('ไฟล์สำรองไม่ถูกต้อง')}};
+$('reset').onclick=()=>{if(confirm('ยืนยันล้างข้อมูลทั้งหมด? ไม่สามารถกู้คืนได้')){db={products:[],orders:[],stock:[]};cart=[];save()}};
+render();if('serviceWorker'in navigator)window.addEventListener('load',()=>navigator.serviceWorker.register('./sw.js').catch(()=>{}));
+</script></body></html>
